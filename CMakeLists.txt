@@ -3,7 +3,10 @@ project(echo)
 
 set(CMAKE_CXX_STANDARD 11)
 
-set(SOURCE_FILES
+set(ECHO_SOURCE_FILES
         main.cpp)
+set(CLIENT_SOURCE_FILES
+        client.cpp)
 
-add_executable(echo ${SOURCE_FILES})
+add_executable(echo ${ECHO_SOURCE_FILES})
+add_executable(client ${CLIENT_SOURCE_FILES})

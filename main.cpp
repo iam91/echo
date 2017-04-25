@@ -57,7 +57,6 @@ int startup(u_short *port)
     if (*port == 0)  /* if dynamically allocating a port */
     {
         socklen_t namelen = sizeof(name);
-
         //returns the current address to which the socket httpd is bound
         if (getsockname(httpd, (struct sockaddr *)&name, &namelen) == -1)
             error_die("getsockname");
