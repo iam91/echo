@@ -26,10 +26,6 @@ void *worker(void *);
 
 //parse callbacks
 int onUrlParsed(http_parser *, const char *, size_t);
-int onHeadersComplete(http_parser * parser){
-    printf("On headers complete.\n");
-    return 0;
-}
 
 int main(){
     int serverSock;
@@ -51,6 +47,7 @@ int main(){
         clientSock = accept(serverSock,
                              (struct sockaddr *)&clientAddr,
                              &clientAddrLen);
+        printf("Client: %d\n", clientSock);
         if (clientSock == -1)
             error("accept");
         if(pthread_create(&thread, &workerAttr, worker, &clientSock)) {
@@ -118,8 +115,6 @@ void *worker(void *args){
     index(clientSock, url);
 
     close(clientSock);
-
-    printf("From client: %d\n", clientSock);
     return NULL;
 }
 
@@ -130,7 +125,6 @@ int getUrl(char *buf, int n, char *url){
     http_parser_settings_init(&settings);
     http_parser_init(&headParser, HTTP_REQUEST);
     settings.on_url = onUrlParsed;
-    settings.on_headers_complete = onHeadersComplete;
     headParser.data = url;
 
     http_parser_execute(&headParser, &settings, buf, n);
