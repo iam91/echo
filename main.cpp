@@ -9,6 +9,7 @@
 #include<pthread.h>
 #include<sys/socket.h>
 #include<netinet/in.h>
+#include<http_parser.h>
 
 int startup(u_short *);
 void error(const char *);
