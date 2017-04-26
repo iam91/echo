@@ -1,15 +1,13 @@
 //
 // Created by zwy on 17-4-25.
 //
-
+//TODO add send to select, or send may block select loop.
 #include<stdio.h>
 #include<string.h>
 #include<stdlib.h>
 #include<unistd.h>
 #include<http_parser.h>
-#include<sys/time.h>
 #include<sys/socket.h>
-#include<sys/select.h>
 #include<netinet/in.h>
 
 #define SERVER_STRING "Server: echo\r\n"
