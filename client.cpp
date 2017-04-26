@@ -1,6 +1,7 @@
 //
 // Created by zwy on 17-4-25.
 //
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
@@ -17,14 +18,19 @@ int main(int argc, char *argv[])
     char ch = 'A';
 
     sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    if(sockfd == -1){
+        perror("open socket failed");
+        exit(1);
+    }
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = inet_addr("127.0.0.1");
-    address.sin_port = htons(9734);
+    address.sin_port = htons(4040);
     len = sizeof(address);
     result = connect(sockfd, (struct sockaddr *)&address, len);
 
     if (result == -1)
     {
+        close(sockfd);
         perror("oops: client1");
         exit(1);
     }
@@ -32,6 +38,6 @@ int main(int argc, char *argv[])
     read(sockfd, &ch, 1);
     printf("char from server = %c\n", ch);
     close(sockfd);
-    exit(0);
+    return 0;
 }
 
