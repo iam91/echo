@@ -6,9 +6,10 @@
 #include<string.h>
 #include<stdlib.h>
 #include<unistd.h>
-#include<pthread.h>
 #include<http_parser.h>
+#include<sys/time.h>
 #include<sys/socket.h>
+#include<sys/select.h>
 #include<netinet/in.h>
 
 #define SERVER_STRING "Server: echo\r\n"
@@ -22,8 +23,6 @@ int getUrl(char *, int, char *);
 void notFound(int);
 void index(int, const char *);
 
-void *worker(void *);
-
 //parse callbacks
 int onUrlParsed(http_parser *, const char *, size_t);
 
@@ -34,25 +33,57 @@ int main(){
     struct sockaddr_in clientAddr;
     socklen_t clientAddrLen = sizeof(clientAddr);
 
-    pthread_t thread;
-    pthread_attr_t workerAttr;
+    int n;
+    char buf[BUFF_SIZE];
+    char url[URL_LEN];
+
+    fd_set read, cread;
+    int i;
+    int fdMax;
+    int readyNum;
+    struct timeval timeout;
+    FD_ZERO(&read);
+    timeout.tv_sec = 0;
+    timeout.tv_usec = 0;
 
     serverSock = startup(&port);
     printf("Start running: httpd running on port %d\n", port);
 
-    pthread_attr_init(&workerAttr);
-    pthread_attr_setdetachstate(&workerAttr, PTHREAD_CREATE_DETACHED);
+    fdMax = serverSock;
+    FD_SET(serverSock, &read);
 
     while(1){
-        clientSock = accept(serverSock,
-                             (struct sockaddr *)&clientAddr,
-                             &clientAddrLen);
-        printf("Client: %d\n", clientSock);
-        if (clientSock == -1)
-            error("accept");
-        if(pthread_create(&thread, &workerAttr, worker, &clientSock)) {
-            close(clientSock);
-            error("pthread_create");
+        cread = read;
+        if((readyNum = select(fdMax + 1, &cread, NULL, NULL, &timeout)) == -1){
+            error("select");
+        }
+        if(readyNum == 0) continue;
+
+        for(i = 0; i <= fdMax; i++){
+            if(FD_ISSET(i, &cread)){
+                if(i == serverSock){
+                    clientSock = accept(serverSock, (sockaddr *)&clientAddr, &clientAddrLen);
+                    if(clientSock == -1){
+                        error("accept");
+                    }
+                    FD_SET(clientSock, &read);
+                    if(fdMax < clientSock){
+                        fdMax = clientSock;
+                    }
+                    printf("Client: %d\n", clientSock);
+                }else{
+                    n = recv(i, buf, BUFF_SIZE, 0);
+                    if(n == 0){
+                        FD_CLR(i, &read);
+                        close(i);
+                    }else{
+                        getUrl(buf, n, url);
+                        index(i, url);
+                        FD_CLR(i, &read);
+                        close(i);
+                    }
+                }
+            }
         }
     }
     close(serverSock);
@@ -100,22 +131,6 @@ int startup(u_short *port)
         error("listen");
     }
     return httpd;
-}
-
-void *worker(void *args){
-    int clientSock = *(int *)args;
-    char buf[BUFF_SIZE];
-    char url[URL_LEN];
-
-    //TODO refine io
-    int n = recv(clientSock, buf, BUFF_SIZE, 0);
-
-    getUrl(buf, n, url);
-
-    index(clientSock, url);
-
-    close(clientSock);
-    return NULL;
 }
 
 int getUrl(char *buf, int n, char *url){
