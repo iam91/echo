@@ -7,9 +7,7 @@
 #include<stdlib.h>
 #include<unistd.h>
 #include<http_parser.h>
-#include<sys/time.h>
 #include<sys/socket.h>
-#include<sys/select.h>
 #include<netinet/in.h>
 
 #define SERVER_STRING "Server: echo\r\n"
