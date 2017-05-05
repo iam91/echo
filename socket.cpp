@@ -22,7 +22,7 @@ int startup(u_short *port)
 
     httpd = socket(PF_INET, SOCK_STREAM, 0);
     if (httpd == -1) {
-        error("socket");
+        error(ERR_SOCKET);
     }
     memset(&name, 0, sizeof(name)); //set memory of `name` to 0
     name.sin_family = AF_INET;
@@ -32,12 +32,12 @@ int startup(u_short *port)
     if ((setsockopt(httpd, SOL_SOCKET, SO_REUSEADDR, &on, sizeof(on))) < 0)
     {
         close(httpd);
-        error("setsockopt failed");
+        error(ERR_SETSOCKETOPT);
     }
 
     if (bind(httpd, (struct sockaddr *)&name, sizeof(name)) < 0){
         close(httpd);
-        error("bind");
+        error(ERR_BIND);
     }
     if (*port == 0)  /* if dynamically allocating a port */
     {
@@ -45,13 +45,13 @@ int startup(u_short *port)
         //returns the current address to which the socket httpd is bound
         if (getsockname(httpd, (struct sockaddr *)&name, &namelen) == -1) {
             close(httpd);
-            error("getsockname");
+            error(ERR_GETSOCKNAME);
         }
         *port = ntohs(name.sin_port);
     }
     if (listen(httpd, 5) < 0) {
         close(httpd);
-        error("listen");
+        error(ERR_LISTEN);
     }
     return httpd;
 }
