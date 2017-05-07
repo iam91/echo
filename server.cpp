@@ -35,6 +35,7 @@ void addEchoFd(EchoFdSet *echoSet, int fd){
     int oldFdMax = echoSet->fdMax;
     echoSet->fdMax = oldFdMax < fd ? fd : oldFdMax;
     echoSet->buf[fd] = (char *)malloc(sizeof(char) * SERVER_BUFF_SIZE);
+    echoSet->n[fd] = 0;
 }
 
 void removeEchoFd(EchoFdSet *echoSet, int fd){
@@ -42,6 +43,11 @@ void removeEchoFd(EchoFdSet *echoSet, int fd){
     FD_CLR(fd, &echoSet->writeSet);
     free(echoSet->buf[fd]);
     echoSet->n[fd] = 0;
+}
+
+void freeEchoFd(EchoFdSet *echoSet){
+    free(echoSet->buf);
+    free(echoSet->n);
 }
 
 void server(u_short port){
@@ -112,4 +118,6 @@ void server(u_short port){
             }
         }
     }
+    close(serverSock);
+    freeEchoFd(&echoFdSet);
 }
