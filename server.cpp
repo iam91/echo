@@ -37,6 +37,11 @@ void removeEchoSet(EchoSet *echoSet, int fd){
     echoSet->n[fd] = 0;
 }
 
+void freeEchoSet(EchoSet *echoSet){
+    free(echoSet->buf);
+    free(echoSet->n);
+}
+
 void setEventParam(epoll_event *ev, uint32_t events, int fd){
     memset(ev, 0, sizeof(epoll_event));
     ev->events = events;
@@ -54,7 +59,6 @@ void server(u_short port){
     int n;
     int fd;
     int left;
-    char echoBuf[SERVER_BUFF_SIZE];
     char url[URL_LEN];
 
     int epfd;
@@ -67,6 +71,7 @@ void server(u_short port){
     serverSock = startup(&port);
 
     initEchoSet(&echoSet);
+    epollEvents = (epoll_event *)malloc(sizeof(epoll_event) * MAX_EVENTS);
     epfd = epoll_create(EPOLL_SIZE_PLACEHOLDER);
 
     //add serverSock
@@ -80,20 +85,18 @@ void server(u_short port){
         for(i = 0; i < evCnt; i++){
             fd = epollEvents[i].data.fd;
             ev = epollEvents[i].events;
-            if(fd == serverSock && ev == EPOLLIN){
+            if(fd == serverSock && ev & EPOLLIN){
                 clientSock = accept(serverSock, (struct sockaddr *)&clientAddr, &clientAddrLen);
                 if(clientSock == -1){
                     close(serverSock);
                     error(ERR_ACCEPT);
                 }
-                setEventParam(&event, EPOLLIN, clientSock);
-                epoll_ctl(epfd, EPOLL_CTL_ADD, clientSock, &event);
-                setEventParam(&event, EPOLLOUT, clientSock);
+                setEventParam(&event, EPOLLIN | EPOLLOUT, clientSock);
                 epoll_ctl(epfd, EPOLL_CTL_ADD, clientSock, &event);
                 addEchoSet(&echoSet, clientSock);
                 printf("Connected to client: %d.\n", clientSock);
             }else{
-                if(ev == EPOLLIN){
+                if(ev & EPOLLIN){
                     n = read(fd, echoSet.buf[fd], SERVER_BUFF_SIZE);
                     if(n == 0){
                         removeEchoSet(&echoSet, fd);
@@ -103,7 +106,7 @@ void server(u_short port){
                         printf("Client %d disconnected.\n", fd);
                     }
                     echoSet.n[fd] = n;
-                }else if(ev == EPOLLOUT){
+                }else if(ev & EPOLLOUT){
                     left = echoSet.n[fd];
                     if(left > 0){
                         getUrl(echoSet.buf[fd], left, url);
@@ -120,4 +123,6 @@ void server(u_short port){
     }
     close(epfd);
     close(serverSock);
+    freeEchoSet(&echoSet);
+    free(epollEvents);
 }
