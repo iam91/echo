@@ -108,8 +108,6 @@ void server(u_short port){
                     index(fd, url);
                     removeEchoFd(&echoFdSet, fd);
                     close(fd);
-                    int t = echoFdSet.n[fd];
-                    echoFdSet.n[fd] = 0;
                 }
             }
         }
