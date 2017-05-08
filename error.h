@@ -8,6 +8,7 @@
 #define ERR_BIND "bind"
 #define ERR_SOCKET "socket"
 #define ERR_LISTEN "listen"
+#define ERR_ACCEPT "accept"
 #define ERR_GETSOCKNAME "getsockname"
 #define ERR_SETSOCKETOPT "setsocketopt"
 
