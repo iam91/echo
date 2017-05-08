@@ -28,7 +28,7 @@ void initEchoSet(EchoSet *echoSet){
 }
 
 void addEchoSet(EchoSet *echoSet, int fd){
-    echoSet->buf[fd] = (char *)malloc(sizeof(char *) * SERVER_BUFF_SIZE);
+    echoSet->buf[fd] = (char *)malloc(sizeof(char) * SERVER_BUFF_SIZE);
     echoSet->n[fd] = 0;
 }
 
