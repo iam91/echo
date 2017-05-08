@@ -97,7 +97,7 @@ void server(u_short port){
                 printf("Connected to client: %d.\n", clientSock);
             }else{
                 if(ev & EPOLLIN){
-                    n = read(fd, echoSet.buf[fd], SERVER_BUFF_SIZE);
+                    n = recv(fd, echoSet.buf[fd], SERVER_BUFF_SIZE, 0);
                     if(n == 0){
                         removeEchoSet(&echoSet, fd);
                         epoll_ctl(epfd, EPOLL_CTL_DEL, fd, &event);
