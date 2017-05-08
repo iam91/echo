@@ -98,7 +98,7 @@ void server(u_short port){
                     addEchoFd(&echoFdSet, clientSock);
                     printf("Connected to client: %d.\n", clientSock);
                 }else{
-                    n = read(fd, echoFdSet.buf[fd], SERVER_BUFF_SIZE);
+                    n = recv(fd, echoFdSet.buf[fd], SERVER_BUFF_SIZE, 0);
                     if(n == 0){
                         removeEchoFd(&echoFdSet, fd);
                         close(fd);
